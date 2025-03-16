@@ -310,6 +310,33 @@ const generateQRCode = catchAsync(async (req, res, next) => {
   }
 });
 
+const addContacts = catchAsync(async (req, res, next) => {
+  if (!req.user) return next(new AppError("User not authenticated", 401));
+
+  const { contactId } = req.body;
+
+  if (req.user._id.toString() === contactId) {
+    return next(new AppError("You cannot add yourself as a contact", 400));
+  }
+
+  const contact = await User.findById(contactId);
+  if (!contact) return next(new AppError("User not found", 404));
+
+  const user = await User.findByIdAndUpdate(
+    req.user._id,
+    { $addToSet: { contacts: contactId } },
+    { new: true }
+  );
+
+  if (!user) return next(new AppError("User not found", 404));
+
+  res.status(200).json({
+    status: "success",
+    message: "Contact added successfully",
+    contacts: user.contacts,
+  });
+});
+
 export {
   transaction,
   getTotalExpensesMonthly,
@@ -319,4 +346,5 @@ export {
   getTransactionHistory,
   applyLoan,
   generateQRCode,
+  addContacts,
 };
