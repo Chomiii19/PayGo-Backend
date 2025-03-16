@@ -1,0 +1,322 @@
+import path from "path";
+import QRCode from "qrcode";
+import fs from "fs";
+import Loan from "../models/loanModel";
+import Transaction from "../models/transactionModel";
+import User from "../models/userModel";
+import AppError from "../utils/appError";
+import catchAsync from "../utils/catchAsync";
+import utcDate from "../utils/convertToUtc0";
+import getLastDayOfMonth from "../utils/getLastDayofMonth";
+
+const transaction = catchAsync(async (req, res, next) => {
+  const { service, recepientNumber, amount, type, payment } = req.body;
+
+  if (!req.user) return next(new AppError("User details not found", 404));
+
+  if (payment === "checkings" && amount > req.user?.checkingsBal)
+    return next(new AppError("Insufficient balance in checkings account", 400));
+
+  if (payment === "savings" && amount > req.user?.savingsBal)
+    return next(new AppError("Insufficient balance in savings account", 400));
+
+  if (service === "PayGo") {
+    const recepient = await User.findById(recepientNumber);
+    if (!recepient) return next(new AppError("Recepient does not exist", 404));
+  }
+
+  const transactionDetails = await Transaction.create({
+    user: req.user._id,
+    type,
+    service,
+    recepientNumber,
+    amount,
+  });
+
+  res.status(201).json({ status: "Success", data: transactionDetails });
+});
+
+const getTotalExpensesThisMonth = catchAsync(async (req, res, next) => {
+  if (!req.user) return next(new AppError("User details not found", 404));
+
+  const date = new Date().toISOString().split("T")[0];
+  const lastDay = getLastDayOfMonth(date);
+
+  const { start, end } = utcDate(
+    date.slice(0, 8).concat("01"),
+    date.slice(0, 8).concat(lastDay)
+  );
+
+  const result = await Transaction.aggregate([
+    {
+      $match: {
+        user: req.user._id,
+        createdAt: {
+          $gte: start,
+          $lte: end,
+        },
+      },
+    },
+    {
+      $group: {
+        _id: "$type",
+        totalAmount: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const grandTotal = result.reduce((sum, item) => sum + item.totalAmount, 0);
+
+  res.status(200).json({
+    status: "Success",
+    data: { result, grandTotal },
+  });
+});
+
+const getTotalExpensesMonthly = catchAsync(async (req, res, next) => {
+  if (!req.user) return next(new AppError("User details not found", 404));
+
+  const currentYear = new Date().getFullYear();
+  const lastYear = currentYear - 1;
+
+  const { start: startThisYear, end: endThisYear } = utcDate(
+    `${currentYear}-01-01`,
+    `${currentYear}-12-31`
+  );
+
+  const { start: startLastYear, end: endLastYear } = utcDate(
+    `${lastYear}-01-01`,
+    `${lastYear}-12-31`
+  );
+
+  const result = await Transaction.aggregate([
+    {
+      $match: {
+        user: req.user._id,
+        createdAt: {
+          $gte: startThisYear,
+          $lte: endThisYear,
+        },
+      },
+    },
+    {
+      $group: {
+        _id: {
+          year: { $year: "$createdAt" },
+          month: { $month: "$createdAt" },
+        },
+        totalAmount: { $sum: "$amount" },
+      },
+    },
+    { $sort: { "_id.year": 1, "_id.month": 1 } },
+  ]);
+
+  const lastYearData = await Transaction.aggregate([
+    {
+      $match: {
+        user: req.user._id,
+        createdAt: { $gte: startLastYear, $lte: endLastYear },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalAmount: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const currentYearTotal = result.reduce(
+    (sum, item) => sum + item.totalAmount,
+    0
+  );
+  const lastYearTotal = lastYearData[0]?.totalAmount || 0;
+
+  let percentageChange = 0;
+  if (lastYearTotal > 0) {
+    percentageChange =
+      ((currentYearTotal - lastYearTotal) / lastYearTotal) * 100;
+  }
+
+  res.status(200).json({
+    status: "Success",
+    data: {
+      result,
+      currentYearTotal,
+      lastYearTotal,
+      percentageChange: percentageChange.toFixed(2),
+    },
+  });
+});
+
+const getTotalTransactionsYearly = catchAsync(async (req, res, next) => {
+  if (!req.user) return next(new AppError("User details not found", 404));
+
+  const currentYear = new Date().getFullYear();
+
+  const { start, end } = utcDate(
+    `${currentYear}-01-01`,
+    `${currentYear}-12-31`
+  );
+
+  const result = await Transaction.aggregate([
+    {
+      $match: {
+        createdAt: { $gte: start, $lte: end },
+        $or: [
+          { user: req.user._id },
+          { type: "bank_transfer", recepientNumber: req.user._id.toString() },
+        ],
+      },
+    },
+    {
+      $facet: {
+        sentTransactions: [
+          { $match: { user: req.user._id } },
+          { $group: { _id: "$type", totalAmount: { $sum: "$amount" } } },
+        ],
+        receivedTotal: [
+          {
+            $match: {
+              type: "bank_transfer",
+              recepientNumber: req.user._id.toString(),
+            },
+          },
+          {
+            $group: { _id: null, totalAmount: { $sum: "$amount" } },
+          },
+        ],
+      },
+    },
+  ]);
+
+  const transactionsByType = result[0].sentTransactions;
+  const receiveTotalAmount = result[0].receivedTotal[0]?.totalAmount || 0;
+
+  const loanTotal = await Loan.aggregate([
+    {
+      $match: {
+        user: req.user._id,
+        createdAt: {
+          $gte: start,
+          $lte: end,
+        },
+      },
+    },
+    {
+      $group: {
+        _id: null,
+        totalAmount: { $sum: "$amount" },
+      },
+    },
+  ]);
+
+  const loanTotalAmount = loanTotal[0]?.totalAmount || 0;
+
+  res.status(200).json({
+    status: "Success",
+    data: { transactionsByType, receiveTotalAmount, loanTotalAmount },
+  });
+});
+
+const getLoanDetails = catchAsync(async (req, res, next) => {
+  if (!req.user) return next(new AppError("User details not found", 404));
+
+  const loanDetails = await Loan.findOne({
+    user: req.user._id,
+    status: "active",
+  });
+
+  if (!loanDetails) return next(new AppError("No active loan found", 404));
+
+  res.status(200).json({ status: "Success", data: loanDetails });
+});
+
+const getTransactionHistory = catchAsync(async (req, res, next) => {
+  if (!req.user) return next(new AppError("User details not found", 404));
+
+  const transactions = await Transaction.find({ user: req.user._id });
+  const receivedTransactions = await Transaction.find({
+    recepientNumber: req.user._id.toString(),
+  });
+  const loans = await Loan.find({ user: req.user._id });
+
+  const allTransactions = [
+    ...transactions,
+    ...receivedTransactions,
+    ...loans,
+  ].sort(
+    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+  );
+
+  res.status(200).json({
+    status: "success",
+    data: allTransactions,
+  });
+});
+
+const applyLoan = catchAsync(async (req, res, next) => {
+  if (!req.user) return next(new AppError("User details not found", 404));
+  const { amount, paymentSource } = req.body;
+
+  if (amount < 10000)
+    return next(new AppError("Insufficient loan amount", 400));
+
+  const activeLoan = await Loan.findOne({
+    user: req.user._id,
+    status: "active",
+  });
+
+  if (activeLoan)
+    return next(new AppError("You still have an active loan", 400));
+
+  const loanDetails = await Loan.create({
+    user: req.user._id,
+    amount,
+    paymentSource,
+    balanceRemaining: amount,
+    nextDueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+  });
+
+  res.status(201).json({ status: "Success", data: loanDetails });
+});
+
+const generateQRCode = catchAsync(async (req, res, next) => {
+  try {
+    if (!req.user) return next(new AppError("User not authenticated", 401));
+
+    const qrData = `${req.user._id.toString()}`;
+    const qrDir = path.join(__dirname, "../public/qrcodes");
+    const qrPath = path.join(
+      __dirname,
+      `../public/qrcodes/${req.user._id.toString()}.png`
+    );
+
+    if (!fs.existsSync(qrDir)) {
+      fs.mkdirSync(qrDir, { recursive: true });
+    }
+
+    if (fs.existsSync(qrPath)) {
+      return res.json({ qrCodeUrl: `/qrcodes/${req.user._id.toString()}.png` });
+    }
+
+    await QRCode.toFile(qrPath, qrData, {
+      errorCorrectionLevel: "H",
+    });
+
+    res.json({ qrCodeUrl: `/qrcodes/${req.user._id.toString()}.png` });
+  } catch (error) {
+    next(error);
+  }
+});
+
+export {
+  transaction,
+  getTotalExpensesMonthly,
+  getTotalExpensesThisMonth,
+  getTotalTransactionsYearly,
+  getLoanDetails,
+  getTransactionHistory,
+  applyLoan,
+  generateQRCode,
+};
