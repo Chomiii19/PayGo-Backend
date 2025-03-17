@@ -258,17 +258,17 @@ const getTransactionHistory = catchAsync(async (req, res, next) => {
     "amount type createdAt"
   );
 
-  const getServiceName = (service: string) => {
-    if (!service) return "Sent Money";
-    if (service.toLowerCase().startsWith("p")) return "Pay Bills";
-    if (service.toLowerCase().startsWith("bu")) return "Buy Load";
-    if (service.toLowerCase().startsWith("ba")) return "Bank Transfer";
+  const getServiceName = (type: string) => {
+    if (!type) return "Sent Money";
+    if (type.toLowerCase().startsWith("p")) return "Pay Bills";
+    if (type.toLowerCase().startsWith("bu")) return "Buy Load";
+    if (type.toLowerCase().startsWith("ba")) return "Bank Transfer";
     return "Sent Money";
   };
 
   const allTransactions = [
     ...transactions.map((t) => ({
-      name: getServiceName(t.service),
+      name: getServiceName(t.type),
       timestamp: t.createdAt,
       amount: t.amount,
       type: 0,
