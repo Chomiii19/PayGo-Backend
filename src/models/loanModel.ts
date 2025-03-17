@@ -2,7 +2,7 @@ import mongoose from "mongoose";
 
 const loanSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
-  type: "loan",
+  type: { type: String, default: "loan" },
   amount: { type: Number, required: true, min: 10000 },
   balanceRemaining: { type: Number, required: true },
   termMonths: { type: Number, default: 10 },
