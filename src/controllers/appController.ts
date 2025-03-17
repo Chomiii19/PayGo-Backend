@@ -80,9 +80,15 @@ const getTotalExpensesThisMonth = catchAsync(async (req, res, next) => {
 
   const grandTotal = result.reduce((sum, item) => sum + item.totalAmount, 0);
 
+  const expenses = result.map((item) => ({
+    type: item._id,
+    totalAmount: item.totalAmount,
+    percentage: grandTotal > 0 ? (item.totalAmount / grandTotal) * 100 : 0,
+  }));
+
   res.status(200).json({
     status: "Success",
-    data: { result, grandTotal },
+    data: { expenses, grandTotal },
   });
 });
 
