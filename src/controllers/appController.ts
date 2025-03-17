@@ -248,11 +248,15 @@ const getLoanDetails = catchAsync(async (req, res, next) => {
 const getTransactionHistory = catchAsync(async (req, res, next) => {
   if (!req.user) return next(new AppError("User details not found", 404));
 
-  const transactions = await Transaction.find({ user: req.user._id });
+  const transactions = await Transaction.find({ user: req.user._id }).select(
+    "amount type createdAt"
+  );
   const receivedTransactions = await Transaction.find({
     recepientNumber: req.user._id.toString(),
-  });
-  const loans = await Loan.find({ user: req.user._id });
+  }).select("amount type createdAt");
+  const loans = await Loan.find({ user: req.user._id }).select(
+    "amount type createdAt"
+  );
 
   const allTransactions = [
     ...transactions,
