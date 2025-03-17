@@ -258,12 +258,35 @@ const getTransactionHistory = catchAsync(async (req, res, next) => {
     "amount type createdAt"
   );
 
+  const getServiceName = (service: string) => {
+    if (!service) return "Sent Money";
+    if (service.toLowerCase().startsWith("p")) return "Pay Bills";
+    if (service.toLowerCase().startsWith("bu")) return "Buy Load";
+    if (service.toLowerCase().startsWith("ba")) return "Bank Transfer";
+    return "Sent Money";
+  };
+
   const allTransactions = [
-    ...transactions,
-    ...receivedTransactions,
-    ...loans,
+    ...transactions.map((t) => ({
+      name: getServiceName(t.service),
+      timestamp: t.createdAt,
+      amount: t.amount,
+      type: 0,
+    })),
+    ...receivedTransactions.map((t) => ({
+      name: "Received Money",
+      timestamp: t.createdAt,
+      amount: t.amount,
+      type: 1,
+    })),
+    ...loans.map((l) => ({
+      name: "Loan Payment",
+      timestamp: l.createdAt,
+      amount: l.amount,
+      type: 0,
+    })),
   ].sort(
-    (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
   );
 
   res.status(200).json({
