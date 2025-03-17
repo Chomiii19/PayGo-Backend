@@ -398,7 +398,7 @@ const generateQRCode = catchAsync(async (req, res, next) => {
     const qrDir = path.join(__dirname, "../public/qrcodes");
     const qrPath = path.join(
       __dirname,
-      `../public/qrcodes/${req.user._id.toString()}.png`
+      `../public/qrcodes/${req.user.accountNumber}.png`
     );
 
     if (!fs.existsSync(qrDir)) {
