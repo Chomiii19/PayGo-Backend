@@ -10,6 +10,10 @@ const userSchema = new mongoose.Schema<IUser>({
     required: [true, "A user must have a name"],
     unique: true,
   },
+  accountNumber: {
+    type: String,
+    unique: true,
+  },
   password: {
     type: String,
     required: [true, "A user must have a password"],

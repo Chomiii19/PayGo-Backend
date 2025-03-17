@@ -6,7 +6,7 @@ import signToken from "../utils/signToken";
 import verifyToken from "../utils/verifyToken";
 import sendCodeVerification from "../utils/sendCodeVerification";
 
-const createSendToken = (id: number, statusCode: number, res: Response) => {
+const createSendToken = (id: string, statusCode: number, res: Response) => {
   const token = signToken(id);
 
   const cookieOption = {
@@ -21,6 +21,12 @@ const createSendToken = (id: number, statusCode: number, res: Response) => {
   res.status(statusCode).json({ status: "Success", token });
 };
 
+const generateAccountNumber = (): string => {
+  const timestamp = Date.now().toString().slice(-5);
+  const randomNum = Math.floor(10000 + Math.random() * 90000);
+  return timestamp + randomNum.toString();
+};
+
 const generateCode = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -30,7 +36,7 @@ const login = catchAsync(async (req, res, next) => {
   if (!accountNumber || !password)
     return next(new AppError("Invalid credentials", 400));
 
-  const user = await User.findById(accountNumber).select("+password");
+  const user = await User.findOne(accountNumber).select("+password");
 
   if (!user || !(await user.comparePassword(password)))
     return next(new AppError("Invalid credentials", 400));
@@ -42,7 +48,7 @@ const login = catchAsync(async (req, res, next) => {
   await user.save();
 
   sendCodeVerification(user);
-  createSendToken(user._id, 200, res);
+  createSendToken(user.accountNumber, 200, res);
 });
 
 const validateToken = catchAsync(async (req, res, next) => {
@@ -51,7 +57,7 @@ const validateToken = catchAsync(async (req, res, next) => {
   if (!token) return next(new AppError("No user token", 404));
 
   const decodedToken = verifyToken(token) as { id: string };
-  const user = await User.findById(decodedToken.id);
+  const user = await User.findOne({ accountNumber: decodedToken.id });
 
   if (!user) return next(new AppError("User not found", 404));
 
@@ -67,7 +73,7 @@ const verifyLoginCode = catchAsync(async (req, res, next) => {
     return next(new AppError("Verification code is required", 400));
 
   const decodedToken = verifyToken(token) as { id: string };
-  const user = await User.findById(decodedToken.id);
+  const user = await User.findOne({ accountNumber: decodedToken.id });
 
   if (!user) return next(new AppError("User not found", 404));
 

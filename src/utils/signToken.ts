@@ -1,6 +1,6 @@
 import jwt from "jsonwebtoken";
 
-const signToken = (id: number): string => {
+const signToken = (id: string): string => {
   if (!process.env.JWT_SECRET_KEY) {
     throw new Error("Secret key is not defined in environment variables");
   }

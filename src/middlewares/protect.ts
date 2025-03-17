@@ -9,7 +9,7 @@ const protect = catchAsync(async (req, res, next) => {
   if (!token) return next(new AppError("No token provided", 401));
 
   const decodedToken = verifyToken(token) as { id: string };
-  const user = await User.findById(decodedToken.id);
+  const user = await User.findOne({ accountNumber: decodedToken.id });
 
   if (!user) return next(new AppError("User not found", 404));
 

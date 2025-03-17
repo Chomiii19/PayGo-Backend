@@ -3,6 +3,7 @@ import { Document } from "mongoose";
 interface IUser extends Document {
   _id: number;
   name: string;
+  accountNumber: string;
   email: string;
   checkingsBal: number;
   savingsBal: number;
