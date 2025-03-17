@@ -25,12 +25,12 @@ const generateCode = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
 const login = catchAsync(async (req, res, next) => {
-  const { accountNum, password } = req.body;
+  const { accountNumber, password } = req.body;
 
-  if (!accountNum || !password)
+  if (!accountNumber || !password)
     return next(new AppError("Invalid credentials", 400));
 
-  const user = await User.findById(accountNum).select("+password");
+  const user = await User.findById(accountNumber).select("+password");
 
   if (!user || !(await user.comparePassword(password)))
     return next(new AppError("Invalid credentials", 400));
@@ -43,6 +43,19 @@ const login = catchAsync(async (req, res, next) => {
 
   sendCodeVerification(user);
   createSendToken(user._id, 200, res);
+});
+
+const validateToken = catchAsync(async (req, res, next) => {
+  const token = req.headers.authorization?.split(" ")[1];
+
+  if (!token) return next(new AppError("No user token", 404));
+
+  const decodedToken = verifyToken(token) as { id: string };
+  const user = await User.findById(decodedToken.id);
+
+  if (!user) return next(new AppError("User not found", 404));
+
+  res.status(200).json({ status: "Success" });
 });
 
 const verifyLoginCode = catchAsync(async (req, res, next) => {
@@ -73,4 +86,4 @@ const logout = catchAsync(async (req, res, next) => {
     .json({ status: "Success", message: "Logged out successfully" });
 });
 
-export { login, verifyLoginCode, logout };
+export { login, verifyLoginCode, validateToken, logout };
