@@ -36,7 +36,7 @@ const login = catchAsync(async (req, res, next) => {
   if (!accountNumber || !password)
     return next(new AppError("Invalid credentials", 400));
 
-  const user = await User.findOne(accountNumber).select("+password");
+  const user = await User.findOne({ accountNumber }).select("+password");
 
   if (!user || !(await user.comparePassword(password)))
     return next(new AppError("Invalid credentials", 400));
