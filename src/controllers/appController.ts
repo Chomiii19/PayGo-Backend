@@ -259,21 +259,18 @@ const getTotalTransactionsYearly = catchAsync(async (req, res, next) => {
     frontColor: colorMap[transaction._id] || "#000",
   }));
 
-  if (receiveTotalAmount > 0) {
-    barData.push({
+  barData.push(
+    {
       value: receiveTotalAmount,
       label: typeLabels.receive,
       frontColor: colorMap.receive,
-    });
-  }
-
-  if (loanTotalAmount > 0) {
-    barData.push({
+    },
+    {
       value: loanTotalAmount,
       label: typeLabels.loan,
       frontColor: colorMap.loan,
-    });
-  }
+    }
+  );
 
   res.status(200).json({
     status: "Success",
