@@ -14,7 +14,7 @@ router
 router.route("/loan/details").get(appController.getLoanDetails);
 router.route("/transaction-history").get(appController.getTransactionHistory);
 router.route("/apply-loan").post(appController.applyLoan);
-router.route("/generate-qrcode").post(appController.generateQRCode);
+router.route("/generate-qrcode").get(appController.generateQRCode);
 router.route("/add-contatcs").patch(appController.addContacts);
 
 export default router;
