@@ -352,7 +352,7 @@ const getTransactionHistory = catchAsync(async (req, res, next) => {
       name: "Loan Payment",
       timestamp: l.createdAt,
       amount: l.amount,
-      type: 0,
+      type: 1,
     })),
   ].sort(
     (a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime()
@@ -388,7 +388,29 @@ const applyLoan = catchAsync(async (req, res, next) => {
     nextDueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
   });
 
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    { $inc: { savingsBal: amount } },
+    { new: true }
+  );
+
+  if (!updatedUser)
+    return next(new AppError("Failed to update user balance", 500));
+
   res.status(201).json({ status: "Success", data: loanDetails });
+});
+
+const getActiveLoan = catchAsync(async (req, res, next) => {
+  if (!req.user) return next(new AppError("User details not found", 404));
+
+  const activeLoan = await Loan.findOne({
+    user: req.user._id,
+    status: "active",
+  });
+
+  if (!activeLoan) return next(new AppError("No active loan", 404));
+
+  res.status(200).json({ status: "Success", data: { activeLoan } });
 });
 
 const generateQRCode = catchAsync(async (req, res, next) => {
@@ -462,4 +484,5 @@ export {
   applyLoan,
   generateQRCode,
   addContacts,
+  getActiveLoan,
 };
