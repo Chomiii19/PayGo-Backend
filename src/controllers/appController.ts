@@ -408,8 +408,6 @@ const getActiveLoan = catchAsync(async (req, res, next) => {
     status: "active",
   });
 
-  if (!activeLoan) return next(new AppError("No active loan", 404));
-
   res.status(200).json({ status: "Success", data: { activeLoan } });
 });
 
