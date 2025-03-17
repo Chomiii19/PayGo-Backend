@@ -30,6 +30,22 @@ const generateAccountNumber = (): string => {
 const generateCode = () =>
   Math.floor(100000 + Math.random() * 900000).toString();
 
+const signup = catchAsync(async (req, res, next) => {
+  const { name, password, email } = req.body;
+
+  const user = await User.create({
+    name,
+    accountNumber: generateAccountNumber(),
+    email,
+    password,
+    checkingsBal: 10000,
+    savingsBal: 10000,
+  });
+
+  sendCodeVerification(user);
+  createSendToken(user.accountNumber, 200, res);
+});
+
 const login = catchAsync(async (req, res, next) => {
   const { accountNumber, password } = req.body;
 
@@ -92,4 +108,4 @@ const logout = catchAsync(async (req, res, next) => {
     .json({ status: "Success", message: "Logged out successfully" });
 });
 
-export { login, verifyLoginCode, validateToken, logout };
+export { login, verifyLoginCode, signup, validateToken, logout };

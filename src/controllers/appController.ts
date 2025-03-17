@@ -394,7 +394,7 @@ const generateQRCode = catchAsync(async (req, res, next) => {
   try {
     if (!req.user) return next(new AppError("User not authenticated", 401));
 
-    const qrData = `${req.user._id.toString()}`;
+    const qrData = `${req.user.accountNumber}`;
     const qrDir = path.join(__dirname, "../public/qrcodes");
     const qrPath = path.join(
       __dirname,
@@ -406,14 +406,14 @@ const generateQRCode = catchAsync(async (req, res, next) => {
     }
 
     if (fs.existsSync(qrPath)) {
-      return res.json({ qrCodeUrl: `/qrcodes/${req.user._id.toString()}.png` });
+      return res.json({ qrCodeUrl: `/qrcodes/${req.user.accountNumber}.png` });
     }
 
     await QRCode.toFile(qrPath, qrData, {
       errorCorrectionLevel: "H",
     });
 
-    res.json({ qrCodeUrl: `/qrcodes/${req.user._id.toString()}.png` });
+    res.json({ qrCodeUrl: `/qrcodes/${req.user.accountNumber}.png` });
   } catch (error) {
     next(error);
   }
