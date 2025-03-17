@@ -17,7 +17,7 @@ const userSchema = new mongoose.Schema<IUser>({
   password: {
     type: String,
     required: [true, "A user must have a password"],
-    minlength: 8,
+    minlength: 4,
     select: false,
   },
   checkingsBal: {
