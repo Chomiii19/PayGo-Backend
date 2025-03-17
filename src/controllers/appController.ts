@@ -157,10 +157,33 @@ const getTotalExpensesMonthly = catchAsync(async (req, res, next) => {
       ((currentYearTotal - lastYearTotal) / lastYearTotal) * 100;
   }
 
+  const monthNames = [
+    "Jan",
+    "Feb",
+    "Mar",
+    "Apr",
+    "May",
+    "Jun",
+    "Jul",
+    "Aug",
+    "Sep",
+    "Oct",
+    "Nov",
+    "Dec",
+  ];
+
+  const results = monthNames.map((month, index) => {
+    const monthData = result.find((item) => item._id.month === index + 1);
+    return {
+      value: monthData ? monthData.totalAmount : 0,
+      label: month,
+    };
+  });
+
   res.status(200).json({
     status: "Success",
     data: {
-      result,
+      results,
       currentYearTotal,
       lastYearTotal,
       percentageChange: percentageChange.toFixed(2),
