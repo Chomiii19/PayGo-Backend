@@ -21,9 +21,22 @@ const transaction = catchAsync(async (req, res, next) => {
     return next(new AppError("Insufficient balance in savings account", 400));
 
   if (service === "PayGo") {
-    const recepient = await User.findById(recepientNumber);
+    const recepient = await User.findOne({ accountNumber: recepientNumber });
     if (!recepient) return next(new AppError("Recepient does not exist", 404));
+
+    recepient.savingsBal += amount;
+    await recepient.save();
   }
+
+  const sender = await User.findById(req.user._id);
+  if (!sender) return next(new AppError("User details not found", 404));
+
+  if (payment === "checkings") {
+    sender.checkingsBal -= amount;
+  } else {
+    sender.savingsBal -= amount;
+  }
+  await sender.save();
 
   const transactionDetails = await Transaction.create({
     user: req.user._id,
