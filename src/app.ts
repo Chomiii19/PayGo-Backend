@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import express from "express";
 import cors from "cors";
+import path from "path";
 import authRoutes from "./routes/authRoutes";
 import appRoutes from "./routes/appRoutes";
 import AppError from "./utils/appError";
@@ -23,6 +24,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 
+app.use("/qrcodes", express.static(path.join(__dirname, "public", "qrcodes")));
 app.use("/api/v1", authRoutes);
 app.use("/api/v1/user", protect, userRoutes);
 app.use("/api/v1/app", protect, appRoutes);

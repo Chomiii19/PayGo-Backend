@@ -413,7 +413,9 @@ const generateQRCode = catchAsync(async (req, res, next) => {
       errorCorrectionLevel: "H",
     });
 
-    res.json({ qrCodeUrl: `/qrcodes/${req.user.accountNumber}.png` });
+    res.json({
+      qrCodeUrl: `https://paygo-backend-1y0p.onrender.com/qrcodes/${req.user.accountNumber}.png`,
+    });
   } catch (error) {
     next(error);
   }
