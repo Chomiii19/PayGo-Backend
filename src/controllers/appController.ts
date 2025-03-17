@@ -405,6 +405,8 @@ const generateQRCode = catchAsync(async (req, res, next) => {
       fs.mkdirSync(qrDir, { recursive: true });
     }
 
+    console.log(qrPath);
+
     if (fs.existsSync(qrPath)) {
       return res.json({ qrCodeUrl: `/qrcodes/${req.user.accountNumber}.png` });
     }
