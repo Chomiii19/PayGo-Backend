@@ -412,6 +412,8 @@ const generateQRCode = catchAsync(async (req, res, next) => {
     }
 
     await QRCode.toFile(qrPath, qrData, {
+      width: 300,
+      height: 300,
       errorCorrectionLevel: "H",
     });
 
