@@ -235,8 +235,8 @@ const getTotalTransactionsYearly = catchAsync(async (req, res, next) => {
   const typeLabels: Record<string, string> = {
     bank_transfer: "Transfer",
     receive: "Receive",
-    buy_load: "Buy Load",
-    pay_bills: "Pay Bills",
+    buy_load: "Load",
+    pay_bills: "Bills",
     loan: "Loan",
   };
 
