@@ -42,6 +42,12 @@ const signup = catchAsync(async (req, res, next) => {
     savingsBal: 10000,
   });
 
+  user.verificationCode = {
+    code: generateCode(),
+    expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+  };
+  await user.save();
+
   sendCodeVerification(user);
   createSendToken(user.accountNumber, 200, res);
 });
