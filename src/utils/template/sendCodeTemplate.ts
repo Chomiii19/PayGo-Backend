@@ -144,7 +144,7 @@ const userVerification = (receiver: IUser) => {
             <!-- start copy -->
             <tr>
               <td align="left" bgcolor="#ffffff" style="padding: 24px; font-family: 'Source Sans Pro', Helvetica, Arial, sans-serif; font-size: 16px; line-height: 24px;">
-                <p style="margin: 0;">Hello ${receiver.name}, below is your 6-digit code for your login verification. If you didn't logged, you can safely delete this email.</p>
+                <p style="margin: 0;">Hello ${receiver.name}, below is your 6-digit code for your login verification. Your account number is ${receiver.accountNumber}. If you didn't logged, you can safely delete this email.</p>
               </td>
             </tr>
             <!-- end copy -->
