@@ -232,9 +232,52 @@ const getTotalTransactionsYearly = catchAsync(async (req, res, next) => {
 
   const loanTotalAmount = loanTotal[0]?.totalAmount || 0;
 
+  const typeLabels: Record<string, string> = {
+    bank_transfer: "Transfer",
+    receive: "Receive",
+    buy_load: "Buy Load",
+    pay_bills: "Pay Bills",
+    loan: "Loan",
+  };
+
+  const colorMap: Record<string, string> = {
+    bank_transfer: "#eab308",
+    receive: "#177AD5",
+    buy_load: "#a855f7",
+    pay_bills: "#f87171",
+    loan: "#22c55e",
+  };
+
+  interface TransactionType {
+    _id: string;
+    totalAmount: number;
+  }
+
+  const barData = transactionsByType.map((transaction: TransactionType) => ({
+    value: transaction.totalAmount,
+    label: typeLabels[transaction._id] || "Unknown",
+    frontColor: colorMap[transaction._id] || "#000",
+  }));
+
+  if (receiveTotalAmount > 0) {
+    barData.push({
+      value: receiveTotalAmount,
+      label: typeLabels.receive,
+      frontColor: colorMap.receive,
+    });
+  }
+
+  if (loanTotalAmount > 0) {
+    barData.push({
+      value: loanTotalAmount,
+      label: typeLabels.loan,
+      frontColor: colorMap.loan,
+    });
+  }
+
   res.status(200).json({
     status: "Success",
-    data: { transactionsByType, receiveTotalAmount, loanTotalAmount },
+    data: barData,
   });
 });
 
