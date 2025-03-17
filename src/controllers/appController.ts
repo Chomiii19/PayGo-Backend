@@ -383,6 +383,7 @@ const applyLoan = catchAsync(async (req, res, next) => {
     user: req.user._id,
     amount,
     paymentSource,
+    monthlyPayment: amount / 10,
     balanceRemaining: amount,
     nextDueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
   });
