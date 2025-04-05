@@ -321,7 +321,7 @@ const getTransactionHistory = catchAsync(async (req, res, next) => {
     "amount type createdAt"
   );
   const receivedTransactions = await Transaction.find({
-    recepientNumber: req.user._id.toString(),
+    recepientNumber: req.user.accountNumber,
   }).select("amount type createdAt");
   const loans = await Loan.find({ user: req.user._id }).select(
     "amount type createdAt"
