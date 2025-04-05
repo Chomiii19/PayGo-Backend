@@ -221,7 +221,7 @@ const getTotalTransactionsYearly = catchAsync(async (req, res, next) => {
           {
             $match: {
               type: "bank_transfer",
-              recepientNumber: req.user._id.toString(),
+              recepientNumber: req.user.accountNumber,
             },
           },
           {
