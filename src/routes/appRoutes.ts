@@ -17,5 +17,6 @@ router.route("/apply-loan").post(appController.applyLoan);
 router.route("/active-loan").get(appController.getActiveLoan);
 router.route("/generate-qrcode").get(appController.generateQRCode);
 router.route("/add-contatcs").patch(appController.addContacts);
+router.route("/loan/:id/pay-term").patch(appController.payLoanTerm);
 
 export default router;

@@ -441,6 +441,55 @@ const getActiveLoan = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: "Success", data: { activeLoan } });
 });
 
+const payLoanTerm = catchAsync(async (req, res, next) => {
+  if (!req.user) return next(new AppError("User details not found", 404));
+
+  const loanId = req.params.id;
+  const { date } = req.body;
+
+  const loan = await Loan.findById(loanId);
+
+  if (!loan) return next(new AppError("Loan not found", 404));
+
+  const targetDate = new Date(date);
+
+  const term = loan.termStatus.find(
+    (term) =>
+      term.dueDate &&
+      new Date(term.dueDate).toDateString() === targetDate.toDateString()
+  );
+
+  if (!term)
+    return next(new AppError("Payment term not found for the given date", 404));
+
+  if (term.paid) return next(new AppError("This term is already paid", 400));
+
+  term.paid = true;
+
+  const nextUnpaid = loan.termStatus.find((t) => !t.paid);
+  loan.nextDueDate = nextUnpaid ? nextUnpaid.dueDate : null;
+
+  await loan.save();
+
+  if (term.amount == null) {
+    return next(new AppError("Term amount is invalid", 400));
+  }
+
+  const balanceField =
+    loan.paymentSource === "savings" ? "savingsBal" : "checkingsBal";
+
+  const updatedUser = await User.findByIdAndUpdate(
+    req.user._id,
+    { $inc: { [balanceField]: -term.amount } },
+    { new: true }
+  );
+
+  if (!updatedUser)
+    return next(new AppError("Failed to update user balance", 500));
+
+  res.status(200).json({ status: "Success", data: loan });
+});
+
 const generateQRCode = catchAsync(async (req, res, next) => {
   try {
     if (!req.user) return next(new AppError("User not authenticated", 401));
@@ -513,4 +562,5 @@ export {
   generateQRCode,
   addContacts,
   getActiveLoan,
+  payLoanTerm,
 };
