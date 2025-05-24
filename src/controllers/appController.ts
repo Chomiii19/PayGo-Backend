@@ -207,7 +207,10 @@ const getTotalTransactionsYearly = catchAsync(async (req, res, next) => {
         createdAt: { $gte: start, $lte: end },
         $or: [
           { user: req.user._id },
-          { type: "bank_transfer", recepientNumber: req.user._id.toString() },
+          {
+            type: "bank_transfer",
+            recepientNumber: req.user.accountNumber.toString(),
+          },
         ],
       },
     },
