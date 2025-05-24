@@ -390,7 +390,7 @@ const applyLoan = catchAsync(async (req, res, next) => {
   const now = new Date();
 
   const termStatus = Array.from({ length: termMonths }, (_, i) => ({
-    dueDate: new Date(now.getTime() + i * 30 * 24 * 60 * 60 * 1000),
+    dueDate: new Date(now.getTime() + (i + 1) * 30 * 24 * 60 * 60 * 1000),
     paid: false,
     amount: monthlyPayment,
   }));
