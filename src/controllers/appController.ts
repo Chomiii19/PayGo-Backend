@@ -468,6 +468,7 @@ const payLoanTerm = catchAsync(async (req, res, next) => {
 
   const nextUnpaid = loan.termStatus.find((t) => !t.paid);
   loan.nextDueDate = nextUnpaid ? nextUnpaid.dueDate : null;
+  loan.balanceRemaining = Math.max(0, loan.balanceRemaining - loan.amount / 10);
 
   await loan.save();
 
