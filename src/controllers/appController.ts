@@ -402,7 +402,7 @@ const applyLoan = catchAsync(async (req, res, next) => {
     monthlyPayment: amount / 10,
     balanceRemaining: amount,
     termStatus,
-    nextDueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    nextDueDate: termStatus[0].dueDate,
   });
 
   const updatedUser = await User.findByIdAndUpdate(
