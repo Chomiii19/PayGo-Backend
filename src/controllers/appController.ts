@@ -382,12 +382,26 @@ const applyLoan = catchAsync(async (req, res, next) => {
   if (activeLoan)
     return next(new AppError("You still have an active loan", 400));
 
+  const termMonths = 10;
+  const interestRate = 0.03;
+  const interest = amount * interestRate;
+  const totalWithInterest = amount + interest;
+  const monthlyPayment = totalWithInterest / termMonths;
+  const now = new Date();
+
+  const termStatus = Array.from({ length: termMonths }, (_, i) => ({
+    dueDate: new Date(now.getTime() + i * 30 * 24 * 60 * 60 * 1000),
+    paid: false,
+    amount: monthlyPayment,
+  }));
+
   const loanDetails = await Loan.create({
     user: req.user._id,
     amount,
     paymentSource,
     monthlyPayment: amount / 10,
     balanceRemaining: amount,
+    termStatus,
     nextDueDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
   });
 
@@ -410,6 +424,19 @@ const getActiveLoan = catchAsync(async (req, res, next) => {
     user: req.user._id,
     status: "active",
   });
+
+  if (!activeLoan) {
+    return res
+      .status(200)
+      .json({ status: "Success", data: { activeLoan: null } });
+  }
+
+  const nextUnpaidTerm = activeLoan.termStatus.find((term) => !term.paid);
+
+  if (nextUnpaidTerm) {
+    activeLoan.nextDueDate = nextUnpaidTerm.dueDate;
+    await activeLoan.save();
+  }
 
   res.status(200).json({ status: "Success", data: { activeLoan } });
 });

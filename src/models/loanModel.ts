@@ -13,8 +13,15 @@ const loanSchema = new mongoose.Schema({
     enum: ["checkings", "savings"],
     required: true,
   },
+  termStatus: [
+    {
+      dueDate: Date,
+      paid: { type: Boolean, default: false },
+      amount: Number,
+    },
+  ],
   createdAt: { type: Date, default: Date.now },
-  nextDueDate: { type: Date, required: true },
+  nextDueDate: Date,
   status: {
     type: String,
     enum: ["active", "paid"],
