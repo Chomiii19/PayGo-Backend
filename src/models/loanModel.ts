@@ -7,7 +7,7 @@ const loanSchema = new mongoose.Schema({
   balanceRemaining: { type: Number, required: true },
   termMonths: { type: Number, default: 10 },
   monthlyPayment: { type: Number, required: true },
-  interestRate: { type: Number, default: 0.03 },
+  interestRate: { type: Number, default: 0.0003 },
   paymentSource: {
     type: String,
     enum: ["checkings", "savings"],

@@ -383,7 +383,7 @@ const applyLoan = catchAsync(async (req, res, next) => {
     return next(new AppError("You still have an active loan", 400));
 
   const termMonths = 10;
-  const interestRate = 0.03;
+  const interestRate = 0.0003;
   const interest = amount * interestRate;
   const totalWithInterest = amount + interest;
   const monthlyPayment = totalWithInterest / termMonths;
