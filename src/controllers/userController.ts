@@ -99,7 +99,7 @@ const updateUserAccount = catchAsync(async (req, res, next) => {
 
 const addContact = catchAsync(async (req, res, next) => {
   const { name, contactNumber } = req.body;
-
+  console.log(req.user);
   if (!req.user) {
     return next(new AppError("User not authenticated", 401));
   }
