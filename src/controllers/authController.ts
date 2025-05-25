@@ -60,7 +60,7 @@ const login = catchAsync(async (req, res, next) => {
 
   const user = await User.findOne({ accountNumber }).select("+password");
   console.log(user);
-  if (!user || user.password !== password)
+  if (!user || (await user.comparePassword(password)))
     return next(new AppError("Invalid credentials", 400));
 
   user.verificationCode = {
