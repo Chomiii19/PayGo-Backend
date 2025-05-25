@@ -1,5 +1,10 @@
 import { Document } from "mongoose";
 
+interface IContact {
+  name: string;
+  contactNumber: string;
+}
+
 interface IUser extends Document {
   _id: number;
   name: string;
@@ -8,7 +13,7 @@ interface IUser extends Document {
   checkingsBal: number;
   savingsBal: number;
   password: string;
-  contacts: string[];
+  contacts: IContact[];
   profilePictureUrl: string;
   verificationCode: { code: String; expiresAt: Date };
   comparePassword(password: string): Promise<boolean>;

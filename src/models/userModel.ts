@@ -39,7 +39,12 @@ const userSchema = new mongoose.Schema<IUser>({
     validate: [validator.isEmail, "Please provide a valid email address"],
   },
   contacts: {
-    type: [String],
+    type: [
+      {
+        name: String,
+        contactNumber: String,
+      },
+    ],
   },
   verificationCode: {
     code: String,

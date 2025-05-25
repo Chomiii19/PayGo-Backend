@@ -97,10 +97,39 @@ const updateUserAccount = catchAsync(async (req, res, next) => {
   });
 });
 
+const addContact = catchAsync(async (req, res, next) => {
+  const { name, contactNumber } = req.body;
+
+  if (!req.user) {
+    return next(new AppError("User not authenticated", 401));
+  }
+
+  if (!name || !contactNumber) {
+    return next(new AppError("Name and contact number are required", 400));
+  }
+
+  const user = await User.findById(req.user._id);
+
+  if (!user) {
+    return next(new AppError("User not found", 404));
+  }
+
+  user.contacts.push({ name, contactNumber });
+
+  await user.save();
+
+  res.status(200).json({
+    status: "success",
+    message: "Contact added successfully",
+    contacts: user.contacts,
+  });
+});
+
 export {
   getUser,
   regenerateCode,
   createUser,
   addBalanceToUser,
   updateUserAccount,
+  addContact,
 };
