@@ -28,6 +28,10 @@ const userSchema = new mongoose.Schema<IUser>({
     type: Number,
     default: 0,
   },
+  profilePictureUrl: {
+    type: String,
+    default: null,
+  },
   email: {
     type: String,
     unique: true,

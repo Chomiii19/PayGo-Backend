@@ -9,6 +9,7 @@ interface IUser extends Document {
   savingsBal: number;
   password: string;
   contacts: string[];
+  profilePictureUrl: string;
   verificationCode: { code: String; expiresAt: Date };
   comparePassword(password: string): Promise<boolean>;
 }
