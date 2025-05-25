@@ -16,7 +16,7 @@ app.set("trust proxy", 1);
 app.use(
   cors({
     origin: "*",
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH"],
     allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
@@ -26,7 +26,7 @@ app.use(cookieParser());
 
 app.use("/qrcodes", express.static(path.join(__dirname, "public", "qrcodes")));
 app.use("/api/v1", authRoutes);
-app.use("/api/v1/user", protect, userRoutes);
+app.use("/api/v1/user", userRoutes);
 app.use("/api/v1/app", protect, appRoutes);
 app.use("/api/v1/img", protect, imgRoutes);
 app.use("*", (req, res, next) =>

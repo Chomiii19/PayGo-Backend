@@ -68,8 +68,8 @@ const addBalanceToUser = catchAsync(async (req, res, next) => {
 
   if (!user) return next(new AppError("User not found", 404));
 
-  if (sourceType === "checkings") user.checkingsBal = amount;
-  else if (sourceType === "savings") user.savingsBal = amount;
+  if (sourceType === "checkings") user.checkingsBal += amount;
+  else if (sourceType === "savings") user.savingsBal += amount;
 
   await user.save();
 

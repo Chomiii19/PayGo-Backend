@@ -1,11 +1,12 @@
 import express from "express";
 import * as userController from "../controllers/userController";
+import protect from "../middlewares/protect";
 
 const router = express.Router();
 
-router.route("/get-user").get(userController.getUser);
-router.route("/generate-code").get(userController.regenerateCode);
-router.route("/create").get(userController.createUser);
-router.route("/add-balance").get(userController.addBalanceToUser);
+router.route("/get-user").get(protect, userController.getUser);
+router.route("/generate-code").get(protect, userController.regenerateCode);
+router.route("/create").post(userController.createUser);
+router.route("/add-balance").patch(userController.addBalanceToUser);
 
 export default router;
