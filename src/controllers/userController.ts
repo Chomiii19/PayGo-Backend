@@ -1,6 +1,7 @@
 import User from "../models/userModel";
 import AppError from "../utils/appError";
 import catchAsync from "../utils/catchAsync";
+import sendAccountDetails from "../utils/sendAccountDetails";
 import sendCodeVerification from "../utils/sendCodeVerification";
 
 const getUser = catchAsync(async (req, res, next) => {
@@ -57,6 +58,8 @@ const createUser = catchAsync(async (req, res, next) => {
     accountNumber: generateAccountNumber(),
     password,
   });
+
+  sendAccountDetails(user.accountNumber, password, user.email);
 
   res.status(201).json({ status: "Success", data: user });
 });
