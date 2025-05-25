@@ -8,5 +8,6 @@ router.route("/get-user").get(protect, userController.getUser);
 router.route("/generate-code").get(protect, userController.regenerateCode);
 router.route("/create").post(userController.createUser);
 router.route("/add-balance").patch(userController.addBalanceToUser);
+router.route("/update").patch(userController.updateUserAccount);
 
 export default router;

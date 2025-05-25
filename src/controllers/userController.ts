@@ -79,4 +79,28 @@ const addBalanceToUser = catchAsync(async (req, res, next) => {
   res.status(200).json({ status: "Success" });
 });
 
-export { getUser, regenerateCode, createUser, addBalanceToUser };
+const updateUserAccount = catchAsync(async (req, res, next) => {
+  const { name, email, password } = req.body;
+
+  const user = await User.findOne({ email });
+  if (!user) return next(new AppError("User not found", 404));
+
+  if (name) user.name = name;
+  if (email) user.email = email;
+  if (password) user.password = password;
+
+  await user.save();
+
+  res.status(200).json({
+    status: "Success",
+    message: "Account successfully updated",
+  });
+});
+
+export {
+  getUser,
+  regenerateCode,
+  createUser,
+  addBalanceToUser,
+  updateUserAccount,
+};
