@@ -40,4 +40,40 @@ const regenerateCode = catchAsync(async (req, res, next) => {
   res.status(200).json({ data: { user } });
 });
 
-export { getUser, regenerateCode };
+const generateAccountNumber = (): string => {
+  const timestamp = Date.now().toString().slice(-5);
+  const randomNum = Math.floor(10000 + Math.random() * 90000);
+  return timestamp + randomNum.toString();
+};
+
+const createUser = catchAsync(async (req, res, next) => {
+  const { name, email, checkingsBal, savingsBal, password } = req.body;
+
+  const user = await User.create({
+    name,
+    email,
+    checkingsBal,
+    savingsBal,
+    accountNumber: generateAccountNumber(),
+    password,
+  });
+
+  res.status(201).json({ status: "Success", data: user });
+});
+
+const addBalanceToUser = catchAsync(async (req, res, next) => {
+  const { sourceType, amount, accountNumber } = req.body;
+
+  const user = await User.findOne({ accountNumber });
+
+  if (!user) return next(new AppError("User not found", 404));
+
+  if (sourceType === "checkings") user.checkingsBal = amount;
+  else if (sourceType === "savings") user.savingsBal = amount;
+
+  await user.save();
+
+  res.status(200).json({ status: "Success" });
+});
+
+export { getUser, regenerateCode, createUser, addBalanceToUser };
